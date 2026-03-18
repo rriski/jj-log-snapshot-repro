@@ -38,6 +38,20 @@ This will print:
 
 Expected: `jj log` is significantly slower than `jj log --ignore-working-copy`.
 
+## Side-by-side baseline vs experimental
+
+Use a custom jj binary and compare baseline to the experimental env flag:
+
+```bash
+JJ_BIN=/home/riski/dev/3rdparty/jj/target/release/jj \
+  ./run_ab.sh 200 100 /tmp/jj-repro-ab
+```
+
+This script sets `merge.same-change=keep` in both generated repos and runs:
+
+- baseline: `jj log`
+- experimental: `JJ_EXPERIMENTAL_REBASE_SKIP_FINAL_RESOLVE=1 jj log`
+
 ## Manual repro
 
 ```bash
