@@ -3,8 +3,6 @@
 Minimal reproduction for a `jj log` slowdown when the working-copy commit has a
 long chain of conflicted descendants.
 
-Upstream project: https://github.com/jj-vcs/jj
-
 ## What this repo contains
 
 - `gen_conflict_chain.sh`: generates a deterministic synthetic jj repo

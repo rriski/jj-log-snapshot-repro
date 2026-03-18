@@ -47,6 +47,8 @@ fi
 
 mkdir -p "$(dirname "$repo_path")"
 rm -rf "$repo_path"
+
+echo "[repro] init repo: $repo_path" >&2
 jj git init --colocate "$repo_path" >/dev/null
 
 cd "$repo_path"
@@ -81,14 +83,20 @@ jj --quiet new sideA sideB
 jj --quiet describe -m conflict-root
 jj --quiet bookmark create conflict-root -r @
 
+echo "[repro] build conflicted chain: $chain_len commits" >&2
+
 if (( chain_len > 0 )); then
   for i in $(seq 1 "$chain_len"); do
     jj --quiet new @
     jj --quiet describe -m "chain-$i"
+    if (( i % 25 == 0 || i == chain_len )); then
+      echo "[repro] chain progress: $i/$chain_len" >&2
+    fi
   done
 fi
 
 if (( edit_to_root == 1 )); then
+  echo "[repro] move working copy to conflict-root" >&2
   jj edit conflict-root >/dev/null
 fi
 

@@ -7,10 +7,12 @@ files="${3:-100}"
 jj_bin="${JJ_BIN:-jj}"
 
 script_dir="$(cd -- "$(dirname -- "$0")" && pwd)"
+echo "[repro] generate repo (depth=$depth, files=$files): $repo" >&2
 "$script_dir/gen_conflict_chain.sh" "$repo" "$depth" "$files" 1 >/dev/null
 
 cd "$repo"
 printf 'trigger-slow\n' > trigger.txt
+echo "[repro] run slow command: $jj_bin log" >&2
 
 slow_ms=$(uv run --python 3.12 python - <<PY
 import subprocess, time
@@ -21,6 +23,7 @@ PY
 )
 
 printf 'trigger-fast\n' > trigger.txt
+echo "[repro] run fast command: $jj_bin log --ignore-working-copy" >&2
 fast_ms=$(uv run --python 3.12 python - <<PY
 import subprocess, time
 t0 = time.perf_counter()
