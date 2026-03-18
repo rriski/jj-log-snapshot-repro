@@ -2,6 +2,8 @@
 set -euo pipefail
 
 jj_bin="${JJ_BIN:-jj}"
+base_jj_bin="${BASE_JJ_BIN:-$jj_bin}"
+exp_jj_bin="${EXP_JJ_BIN:-$jj_bin}"
 depth="${1:-200}"
 files="${2:-100}"
 root="${3:-/tmp/jj-repro-ab}"
@@ -23,8 +25,8 @@ else
   "$script_dir/gen_conflict_chain.sh" "$exp_repo" "$depth" "$files" 1 >/dev/null
 fi
 
-"$jj_bin" config set --repository "$base_repo" --repo merge.same-change keep >/dev/null
-"$jj_bin" config set --repository "$exp_repo" --repo merge.same-change keep >/dev/null
+"$base_jj_bin" config set --repository "$base_repo" --repo merge.same-change keep >/dev/null
+"$exp_jj_bin" config set --repository "$exp_repo" --repo merge.same-change keep >/dev/null
 
 measure_ms() {
   local repo="$1"
@@ -38,13 +40,13 @@ PY
 }
 
 printf 'baseline\n' > "$base_repo/trigger.txt"
-base_slow_ms=$(measure_ms "$base_repo" "$jj_bin log")
+base_slow_ms=$(measure_ms "$base_repo" "$base_jj_bin log")
 
 printf 'experimental\n' > "$exp_repo/trigger.txt"
-exp_slow_ms=$(measure_ms "$exp_repo" "JJ_EXPERIMENTAL_REBASE_SKIP_FINAL_RESOLVE=1 $jj_bin log")
+exp_slow_ms=$(measure_ms "$exp_repo" "$exp_jj_bin log")
 
 printf 'fast\n' > "$base_repo/trigger.txt"
-fast_ms=$(measure_ms "$base_repo" "$jj_bin log --ignore-working-copy")
+fast_ms=$(measure_ms "$base_repo" "$base_jj_bin log --ignore-working-copy")
 
 base_ratio=$(awk -v s="$base_slow_ms" -v f="$fast_ms" 'BEGIN { if (f==0) print "inf"; else printf "%.2f", s/f }')
 exp_ratio=$(awk -v s="$exp_slow_ms" -v f="$fast_ms" 'BEGIN { if (f==0) print "inf"; else printf "%.2f", s/f }')
